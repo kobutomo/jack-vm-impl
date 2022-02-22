@@ -32,10 +32,22 @@ pub fn parse(line: String) -> Option<translator::Instruction> {
         "push" => {
             let arg1 = line.split(" ").nth(1).unwrap();
             let arg2 = line.split(" ").nth(2).unwrap();
-            Some(translator::Instruction::Push {
-                arg1: arg1.to_owned(),
-                arg2: arg2.to_owned(),
-            })
+            Some(translator::Instruction::Push(
+                translator::ArgsWithTwo {
+                    arg1: arg1.to_owned(),
+                    arg2: arg2.to_owned(),
+                },
+            ))
+        }
+        "pop" => {
+            let arg1 = line.split(" ").nth(1).unwrap();
+            let arg2 = line.split(" ").nth(2).unwrap();
+            Some(translator::Instruction::Pop(
+                translator::ArgsWithTwo {
+                    arg1: arg1.to_owned(),
+                    arg2: arg2.to_owned(),
+                },
+            ))
         }
         _ => None,
     }
