@@ -24,7 +24,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let line = line.unwrap();
         let instruction = parser::parse(line);
         if let Some(instruction) = instruction {
-            let s = translator::translate(instruction);
+            let s = translator::translate(instruction, output);
             writer.write(s.as_bytes())?;
         }
     }

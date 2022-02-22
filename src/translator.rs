@@ -55,12 +55,13 @@ const DECREMENT_SP: &str = "@SP\nM=M-1\n";
 /// A: スタックの先頭アドレス
 const ADDRESSING_SP: &str = "@SP\nA=M\n";
 
-pub fn translate(instruction: Instruction) -> String {
+pub fn translate(instruction: Instruction, filename: &str) -> String {
+    let filename = filename.split(".").nth(0).unwrap();
     match instruction {
         // (add | sub | neg) x y
         Instruction::ArithmeticIns(a_ins) => translate_arithmetic_ins(a_ins),
-        Instruction::Push(args) => translate_push(args),
-        Instruction::Pop(args) => translate_pop(args),
+        Instruction::Push(args) => translate_push(args, filename),
+        Instruction::Pop(args) => translate_pop(args, filename),
         _ => String::new(),
     }
 }
@@ -89,7 +90,7 @@ fn translate_arithmetic_ins(ins: ArithmeticIns) -> String {
     ret
 }
 
-fn translate_push(args: ArgsWithTwo) -> String {
+fn translate_push(args: ArgsWithTwo, filename: &str) -> String {
     match &args.arg1[..] {
         "constant" => {
             let mut ret = String::new();
@@ -105,7 +106,17 @@ fn translate_push(args: ArgsWithTwo) -> String {
         "that" => push_segment(args.arg2, "THAT"),
         "pointer" => push_reg(args.arg2, "3"),
         "temp" => push_reg(args.arg2, "5"),
-        // "static" => {}
+        "static" => {
+            let mut ret = String::new();
+            ret += "@";
+            ret += filename;
+            ret += ".";
+            ret += &args.arg2[..];
+            ret += "\n";
+            ret += "D=M\n";
+            ret += PUSH_STACK;
+            ret
+        }
         _ => String::new(),
     }
 }
@@ -140,7 +151,7 @@ fn push_reg(index: String, reg_addr: &str) -> String {
     ret
 }
 
-fn translate_pop(args: ArgsWithTwo) -> String {
+fn translate_pop(args: ArgsWithTwo, filename: &str) -> String {
     match &args.arg1[..] {
         "local" => pop_segment(args.arg2, "LCL"),
         "argument" => pop_segment(args.arg2, "ARG"),
@@ -148,7 +159,17 @@ fn translate_pop(args: ArgsWithTwo) -> String {
         "that" => pop_segment(args.arg2, "THAT"),
         "pointer" => pop_reg(args.arg2, "3"),
         "temp" => pop_reg(args.arg2, "5"),
-        // "static" => {}
+        "static" => {
+            let mut ret = String::new();
+            ret += POP_STACK;
+            ret += "@";
+            ret += filename;
+            ret += ".";
+            ret += &args.arg2[..];
+            ret += "\n";
+            ret += "M=D\n";
+            ret
+        }
         _ => String::new(),
     }
 }
