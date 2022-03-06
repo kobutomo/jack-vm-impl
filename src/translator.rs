@@ -87,7 +87,7 @@ impl Translator {
 
     pub fn generate_boostrap(&self) -> String {
         let mut ret = String::new();
-        ret += "@256\n";
+        ret += "@261\n";
         ret += "D=A\n";
         ret += "@SP\n";
         ret += "M=D\n";
@@ -382,7 +382,7 @@ impl Translator {
         ret += "@";
         ret += &ret_addr[..];
         ret += "\n";
-        ret += "D=M\n";
+        ret += "D=A\n";
         ret += PUSH_STACK;
         // レジスタ退避
         // LCL
@@ -424,44 +424,65 @@ impl Translator {
 
     fn translate_return_func() -> String {
         let mut ret = String::new();
+        // LCLの保存
+        ret += "@LCL\n";
+        ret += "D=M\n";
+        ret += "@R13\n";
+        ret += "M=D\n";
+        // リターンアドレスを保存
+        ret += "@5\n";
+        ret += "D=A\n";
+        ret += "@R13\n";
+        // A=LCL-5
+        ret += "A=M-D\n";
+        ret += "D=M\n";
+        ret += "@R14\n";
+        ret += "M=D\n";
         // 戻り値の設定
         ret += POP_STACK;
         ret += "@ARG\n";
         ret += "A=M\n";
         ret += "M=D\n";
-        // つぎのスタックポインタを保存
+        // SP の復元
         ret += "D=A+1\n";
-        ret += "@R13\n";
-        ret += "M=D\n";
-        // レジスタ復元
-        ret += "@LCL\n";
-        ret += "D=M\n";
         ret += "@SP\n";
         ret += "M=D\n";
+        // レジスタ復元
         // THAT
-        ret += POP_STACK;
+        ret += "@1\n";
+        ret += "D=A\n";
+        ret += "@R13\n";
+        // A=LCL-1
+        ret += "A=M-D\n";
+        ret += "D=M\n";
         ret += "@THAT\n";
         ret += "M=D\n";
         // THIS
-        ret += POP_STACK;
+        ret += "@2\n";
+        ret += "D=A\n";
+        ret += "@R13\n";
+        // A=LCL-2
+        ret += "A=M-D\n";
+        ret += "D=M\n";
         ret += "@THIS\n";
         ret += "M=D\n";
         // ARG
-        ret += POP_STACK;
+        ret += "@3\n";
+        ret += "D=A\n";
+        ret += "@R13\n";
+        // A=LCL-3
+        ret += "A=M-D\n";
+        ret += "D=M\n";
         ret += "@ARG\n";
         ret += "M=D\n";
         // LCL
-        ret += POP_STACK;
-        ret += "@LCL\n";
-        ret += "M=D\n";
-        // リターンアドレスを保存
-        ret += POP_STACK;
-        ret += "@R14\n";
-        ret += "M=D\n"; // RAM[R14] = return_address
-                        // SP復元
+        ret += "@4\n";
+        ret += "D=A\n";
         ret += "@R13\n";
+        // A=LCL-4
+        ret += "A=M-D\n";
         ret += "D=M\n";
-        ret += "@SP\n";
+        ret += "@LCL\n";
         ret += "M=D\n";
         // goto
         ret += "@R14\n";
