@@ -1,4 +1,4 @@
 /target
 .vscode
-in.vm
+/in
 out.asm

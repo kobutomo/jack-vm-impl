@@ -15,19 +15,31 @@ fn main() -> Result<(), Box<dyn Error>> {
         eprintln!("need source file path");
         return Ok(());
     }
-    let input = input.unwrap();
     let output = output.unwrap();
-    // パース
-    let reader = io::BufReader::new(fs::File::open(input)?);
+    let input = input.unwrap();
+    let paths = fs::read_dir(input).unwrap();
     let mut writer = io::BufWriter::new(fs::File::create(output)?);
-    for line in reader.lines() {
-        let line = line.unwrap();
-        let instruction = parser::parse(line);
-        if let Some(instruction) = instruction {
-            let s = translator::translate(instruction, output);
-            writer.write(s.as_bytes())?;
+    let mut tl = translator::Translator::new();
+    writer.write(tl.generate_boostrap().as_bytes())?;
+    for path in paths {
+        let path = path.unwrap().path();
+        let extension = path.extension().unwrap();
+        let filename = path.file_name().unwrap().to_str().unwrap();
+        if extension != "vm" {
+            continue;
         }
+        // パース
+        let reader = io::BufReader::new(fs::File::open(&path)?);
+        for line in reader.lines() {
+            let line = line.unwrap();
+            writer.write(("// ".to_owned() + &(line.clone() + "\n")[..]).as_bytes())?;
+            let instruction = parser::parse(line);
+            if let Some(instruction) = instruction {
+                let s = tl.translate(instruction, filename);
+                writer.write(s.as_bytes())?;
+            }
+        }
+        writer.flush()?;
     }
-    writer.flush()?;
     Ok(())
 }
